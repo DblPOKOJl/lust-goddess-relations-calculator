@@ -1,0 +1,473 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Lust Goddess — Калькулятор прокачки отношений</title>
+<style>
+  * { box-sizing: border-box; }
+  :root {
+    --bg: #0b0709;
+    --card: #171016;
+    --border: rgba(255, 46, 136, .22);
+    --pink: #ff2e88;
+    --pink-soft: #ff7ab1;
+    --text: #f7eef4;
+    --muted: #9b8a94;
+    --ok: #7dffa8;
+    --bad: #ff9b9b;
+  }
+  body {
+    margin: 0;
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Arial, sans-serif;
+    font-size: 16px;
+    color: var(--text);
+    min-height: 100vh;
+    background:
+      radial-gradient(1100px 550px at 15% -10%, rgba(255, 46, 136, .16), transparent),
+      radial-gradient(900px 500px at 90% 0%, rgba(192, 92, 255, .10), transparent),
+      var(--bg);
+    padding: 24px 16px 60px;
+  }
+  header { text-align: center; margin-bottom: 24px; }
+  h1 {
+    margin: 0 0 6px;
+    font-size: clamp(24px, 4vw, 36px);
+    background: linear-gradient(90deg, #ff2e88, #ff7ab1, #c05cff);
+    -webkit-background-clip: text;
+    background-clip: text;
+    color: transparent;
+  }
+  .subtitle { margin: 0; color: var(--muted); font-size: 15px; }
+
+  /* боковые колонки одинаковые (1fr), центр — по содержимому */
+  .layout {
+    display: grid;
+    grid-template-columns: minmax(220px, 1fr) auto minmax(220px, 1fr);
+    gap: 18px;
+    max-width: 1020px;
+    margin: 0 auto;
+    align-items: start;
+  }
+  @media (max-width: 980px) { .layout { grid-template-columns: 1fr; } }
+
+  .card {
+    background: linear-gradient(180deg, rgba(255,255,255,.03), transparent), var(--card);
+    border: 1px solid var(--border);
+    border-radius: 18px;
+    padding: 18px;
+    box-shadow: 0 10px 30px rgba(0, 0, 0, .45);
+  }
+  .card h2 {
+    margin: 0 0 12px;
+    font-size: 15px;
+    letter-spacing: .12em;
+    text-transform: uppercase;
+    color: var(--pink-soft);
+  }
+
+  .label { display: block; font-size: 15px; color: var(--muted); margin-bottom: 6px; }
+  input[type="number"] {
+    width: 100%;
+    background: #0f0a0d;
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    color: var(--text);
+    padding: 10px 12px;
+    font-size: 17px;
+    outline: none;
+  }
+  input[type="number"]:focus {
+    border-color: var(--pink);
+    box-shadow: 0 0 0 3px rgba(255, 46, 136, .15);
+  }
+  .hint { margin-top: 7px; font-size: 13px; color: var(--muted); }
+
+  /* ── сетка подарков 3×3 (компактная) ── */
+  .grid {
+    display: grid;
+    grid-template-columns: repeat(3, 94px);
+    gap: 10px;
+    justify-content: center;
+  }
+  .gift {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 6px;
+    padding: 12px 4px 10px;
+    border-radius: 14px;
+    background: rgba(255, 255, 255, .02);
+    border: 1px solid rgba(255, 255, 255, .06);
+  }
+  .gift-icon { line-height: 0; }
+  .gift-icon svg { width: 44px; height: 44px; display: block; }
+  .icon-blue   { filter: drop-shadow(0 0 8px rgba(1, 208, 251, .45)); }
+  .icon-purple { filter: drop-shadow(0 0 8px rgba(189, 128, 225, .45)); }
+  .icon-red    { filter: drop-shadow(0 0 8px rgba(254, 71, 85, .45)); }
+  .gift-value { font-size: 13px; color: var(--muted); transition: color .15s; }
+  .gift-value.fav { color: var(--pink); font-weight: 700; }
+  .gift-count {
+    width: 52px;
+    text-align: center;
+    padding: 7px 2px;
+    font-size: 15px;
+  }
+  /* убираем спиннеры у узких инпутов количества */
+  .gift-count::-webkit-outer-spin-button,
+  .gift-count::-webkit-inner-spin-button { -webkit-appearance: none; margin: 0; }
+  .gift-count { -moz-appearance: textfield; appearance: textfield; }
+  .fav { display: flex; align-items: center; gap: 6px; cursor: pointer; user-select: none; }
+  .fav input { width: 15px; height: 15px; accent-color: var(--pink); cursor: pointer; margin: 0; }
+  .heart {
+    font-size: 16px; color: #5a4150;
+    transition: color .15s, text-shadow .15s, transform .15s;
+  }
+  .fav input:checked + .heart {
+    color: var(--pink);
+    text-shadow: 0 0 10px rgba(255, 46, 136, .8);
+    transform: scale(1.2);
+  }
+
+  /* ── результат ── */
+  .big-level {
+    font-size: 40px; font-weight: 800; color: var(--pink);
+    text-shadow: 0 0 18px rgba(255, 46, 136, .35);
+  }
+  .leftover { color: var(--muted); font-size: 15px; margin-top: 2px; }
+  .totals { color: var(--muted); font-size: 13px; margin-top: 6px; }
+  .milestone {
+    margin-top: 10px; padding: 10px 12px; border-radius: 12px;
+    font-size: 15px; border: 1px dashed;
+  }
+  .milestone.ok  { color: var(--ok);  border-color: rgba(125,255,168,.35); background: rgba(125,255,168,.06); }
+  .milestone.bad { color: var(--bad); border-color: rgba(255,155,155,.25); background: rgba(255,155,155,.05); }
+
+  .actions { text-align: center; margin-top: 20px; }
+  #reset {
+    background: linear-gradient(90deg, #ff2e88, #c05cff);
+    color: #fff; border: none; border-radius: 12px;
+    padding: 12px 26px; font-size: 16px; font-weight: 700; cursor: pointer;
+    box-shadow: 0 6px 20px rgba(255, 46, 136, .3);
+  }
+  #reset:hover { filter: brightness(1.12); }
+
+  /* ── низ страницы: ссылки ── */
+  footer {
+    margin-top: 28px;
+    display: flex; flex-direction: column; align-items: center; gap: 8px;
+    text-align: center;
+  }
+  #bug-link {
+    background: none; border: none; cursor: pointer;
+    color: var(--muted); font-size: 14px;
+    text-decoration: underline; text-underline-offset: 3px;
+    padding: 4px 8px;
+  }
+  #bug-link:hover { color: var(--pink-soft); }
+  .footer-link a {
+    color: var(--muted); font-size: 14px;
+    text-decoration: underline; text-underline-offset: 3px;
+  }
+  .footer-link a:hover { color: var(--pink-soft); }
+
+  /* ── модальное окно «нашел баг» (как в первом калькуляторе) ── */
+  .modal-overlay {
+    position: fixed; inset: 0; z-index: 100;
+    background: rgba(5, 2, 4, .7);
+    backdrop-filter: blur(3px);
+    display: flex; align-items: center; justify-content: center;
+    padding: 16px;
+  }
+  .modal-overlay[hidden] { display: none; }
+  .modal {
+    position: relative;
+    width: min(380px, 100%);
+    background: var(--card); border: 1px solid var(--border); border-radius: 16px;
+    padding: 20px; font-size: 14px; line-height: 1.55;
+    box-shadow: 0 20px 60px rgba(0, 0, 0, .6);
+  }
+  .modal h3 { margin: 0 0 8px; font-size: 16px; }
+  .modal ol { margin: 6px 0; padding-left: 18px; }
+  .modal a { color: var(--pink-soft); word-break: break-all; }
+  .modal-close {
+    position: absolute; top: 8px; right: 10px;
+    background: none; border: none; color: var(--muted);
+    font-size: 20px; cursor: pointer;
+  }
+  .modal-close:hover { color: var(--text); }
+</style>
+</head>
+<body>
+
+<header>
+  <h1>💗 Lust Goddess 💗</h1>
+  <p class="subtitle">Калькулятор прокачки отношений с бойцом</p>
+</header>
+
+<main class="layout">
+
+  <!-- СЕЙЧАС -->
+  <section class="card">
+    <h2>Сейчас</h2>
+    <label>
+      <span class="label">Баллы отношений</span>
+      <input id="current-points" type="number" min="0" step="1" value="0" inputmode="numeric" />
+    </label>
+    <div class="hint" id="current-level-hint">≈ 1 уровень отношений</div>
+  </section>
+
+  <!-- ПОДАРКИ 3×3 -->
+  <section class="card">
+    <h2>Подарки</h2>
+    <div class="grid" id="gifts">
+      <!-- редкие (+10), синие -->
+      <div class="gift" data-value="10">
+        <div class="gift-icon icon-blue">
+          <svg width="512" height="512" viewBox="0 0 512 512" fill="none" xmlns="http://www.w3.org/2000/svg">
+            <circle cx="256" cy="256" r="256" fill="#99E6FC"/>
+            <ellipse cx="256" cy="256" rx="256" ry="90" fill="#62DBFB"/>
+            <path d="M256 0C275.949 0 295.364 2.28199 314 6.59863C200.554 32.8762 116 134.564 116 256C116 377.436 200.554 479.123 314 505.4C295.364 509.717 275.949 512 256 512C114.615 512 0 397.385 0 256C0 114.615 114.615 0 256 0Z" fill="#62DBFB"/>
+            <path d="M128.096 178C120.242 202.586 116 228.786 116 255.978C116 283.169 120.242 309.369 128.096 333.955C51.5245 318.398 0 289.304 0 255.978C0 222.651 51.5245 193.557 128.096 178Z" fill="#01D0FB"/>
+          </svg>
+        </div>
+        <div class="gift-value">+10</div>
+        <input class="gift-count" type="number" min="0" step="1" value="0" inputmode="numeric" aria-label="Количество подарка" />
+        <label class="fav" title="Любимый подарок"><input type="checkbox" class="gift-fav" /><span class="heart">♥</span></label>
+      </div>
+      <div class="gift" data-value="10">
+        <div class="gift-icon icon-blue">
+          <svg width="512" height="512" viewBox="0 0 512 512" fill="none" xmlns="http://www.w3.org/2000/svg">
+            <path d="M256 0L512 387L256 512L0 387L256 0Z" fill="#99E6FC"/>
+            <path d="M256 0V260L0 387L256 0Z" fill="#62DBFB"/>
+            <path d="M256 512V260L0 387L256 512Z" fill="#01D0FB"/>
+            <path d="M256 512V260L512 387L256 512Z" fill="#62DBFB"/>
+          </svg>
+        </div>
+        <div class="gift-value">+10</div>
+        <input class="gift-count" type="number" min="0" step="1" value="0" inputmode="numeric" aria-label="Количество подарка" />
+        <label class="fav" title="Любимый подарок"><input type="checkbox" class="gift-fav" /><span class="heart">♥</span></label>
+      </div>
+      <div class="gift" data-value="10">
+        <div class="gift-icon icon-blue">
+          <svg width="512" height="512" viewBox="0 0 512 512" fill="none" xmlns="http://www.w3.org/2000/svg">
+            <path d="M256 0V233L27 117L256 0Z" fill="#62DBFB"/>
+            <path d="M256 233V279L27 395V117L256 233Z" fill="#01D0FB"/>
+            <path d="M256 233V279L485 395V117L256 233Z" fill="#62DBFB"/>
+            <path d="M256 279V512L27 395L256 279Z" fill="#00C2EA"/>
+            <path d="M256 0V233L485 117L256 0Z" fill="#99E6FC"/>
+            <path d="M256 279V512L485 395L256 279Z" fill="#01D0FB"/>
+          </svg>
+        </div>
+        <div class="gift-value">+10</div>
+        <input class="gift-count" type="number" min="0" step="1" value="0" inputmode="numeric" aria-label="Количество подарка" />
+        <label class="fav" title="Любимый подарок"><input type="checkbox" class="gift-fav" /><span class="heart">♥</span></label>
+      </div>
+      <!-- эпические (+20), фиолетовые -->
+      <div class="gift" data-value="20">
+        <div class="gift-icon icon-purple">
+          <svg width="512" height="512" viewBox="0 0 512 512" fill="none" xmlns="http://www.w3.org/2000/svg">
+            <circle cx="256" cy="256" r="256" fill="#D9B1EE"/>
+            <ellipse cx="256" cy="256" rx="256" ry="90" fill="#CB97E7"/>
+            <path d="M256 0C275.949 0 295.364 2.28199 314 6.59863C200.554 32.8762 116 134.564 116 256C116 377.436 200.554 479.123 314 505.4C295.364 509.717 275.949 512 256 512C114.615 512 0 397.385 0 256C0 114.615 114.615 0 256 0Z" fill="#CB97E7"/>
+            <path d="M128.096 178C120.242 202.586 116 228.786 116 255.978C116 283.169 120.242 309.369 128.096 333.955C51.5245 318.398 0 289.304 0 255.978C0 222.651 51.5245 193.557 128.096 178Z" fill="#BD80E1"/>
+          </svg>
+        </div>
+        <div class="gift-value">+20</div>
+        <input class="gift-count" type="number" min="0" step="1" value="0" inputmode="numeric" aria-label="Количество подарка" />
+        <label class="fav" title="Любимый подарок"><input type="checkbox" class="gift-fav" /><span class="heart">♥</span></label>
+      </div>
+      <div class="gift" data-value="20">
+        <div class="gift-icon icon-purple">
+          <svg width="512" height="512" viewBox="0 0 512 512" fill="none" xmlns="http://www.w3.org/2000/svg">
+            <path d="M256 0L512 387L256 512L0 387L256 0Z" fill="#D9B1EE"/>
+            <path d="M256 0V260L0 387L256 0Z" fill="#CB97E7"/>
+            <path d="M256 512V260L0 387L256 512Z" fill="#BD80E1"/>
+            <path d="M256 512V260L512 387L256 512Z" fill="#CB97E7"/>
+          </svg>
+        </div>
+        <div class="gift-value">+20</div>
+        <input class="gift-count" type="number" min="0" step="1" value="0" inputmode="numeric" aria-label="Количество подарка" />
+        <label class="fav" title="Любимый подарок"><input type="checkbox" class="gift-fav" /><span class="heart">♥</span></label>
+      </div>
+      <div class="gift" data-value="20">
+        <div class="gift-icon icon-purple">
+          <svg width="512" height="512" viewBox="0 0 512 512" fill="none" xmlns="http://www.w3.org/2000/svg">
+            <path d="M256 0V233L27 117L256 0Z" fill="#CB97E7"/>
+            <path d="M256 233V279L27 395V117L256 233Z" fill="#BD80E1"/>
+            <path d="M256 233V279L485 395V117L256 233Z" fill="#CB97E7"/>
+            <path d="M256 279V512L27 395L256 279Z" fill="#B271D9"/>
+            <path d="M256 0V233L485 117L256 0Z" fill="#D9B1EE"/>
+            <path d="M256 279V512L485 395L256 279Z" fill="#BD80E1"/>
+          </svg>
+        </div>
+        <div class="gift-value">+20</div>
+        <input class="gift-count" type="number" min="0" step="1" value="0" inputmode="numeric" aria-label="Количество подарка" />
+        <label class="fav" title="Любимый подарок"><input type="checkbox" class="gift-fav" /><span class="heart">♥</span></label>
+      </div>
+      <!-- легендарные (+50), красные -->
+      <div class="gift" data-value="50">
+        <div class="gift-icon icon-red">
+          <svg width="512" height="512" viewBox="0 0 512 512" fill="none" xmlns="http://www.w3.org/2000/svg">
+            <circle cx="256" cy="256" r="256" fill="#FD8087"/>
+            <ellipse cx="256" cy="256" rx="256" ry="90" fill="#FF626D"/>
+            <path d="M256 0C275.949 0 295.364 2.28199 314 6.59863C200.554 32.8762 116 134.564 116 256C116 377.436 200.554 479.123 314 505.4C295.364 509.717 275.949 512 256 512C114.615 512 0 397.385 0 256C0 114.615 114.615 0 256 0Z" fill="#FF626D"/>
+            <path d="M128.096 178C120.242 202.586 116 228.786 116 255.978C116 283.169 120.242 309.369 128.096 333.955C51.5245 318.398 0 289.304 0 255.978C0 222.651 51.5245 193.557 128.096 178Z" fill="#FE4755"/>
+          </svg>
+        </div>
+        <div class="gift-value">+50</div>
+        <input class="gift-count" type="number" min="0" step="1" value="0" inputmode="numeric" aria-label="Количество подарка" />
+        <label class="fav" title="Любимый подарок"><input type="checkbox" class="gift-fav" /><span class="heart">♥</span></label>
+      </div>
+      <div class="gift" data-value="50">
+        <div class="gift-icon icon-red">
+          <svg width="512" height="512" viewBox="0 0 512 512" fill="none" xmlns="http://www.w3.org/2000/svg">
+            <path d="M256 0L512 387L256 512L0 387L256 0Z" fill="#FD8087"/>
+            <path d="M256 0V260L0 387L256 0Z" fill="#FF626D"/>
+            <path d="M256 512V260L0 387L256 512Z" fill="#FE4755"/>
+            <path d="M256 512V260L512 387L256 512Z" fill="#FF626D"/>
+          </svg>
+        </div>
+        <div class="gift-value">+50</div>
+        <input class="gift-count" type="number" min="0" step="1" value="0" inputmode="numeric" aria-label="Количество подарка" />
+        <label class="fav" title="Любимый подарок"><input type="checkbox" class="gift-fav" /><span class="heart">♥</span></label>
+      </div>
+      <div class="gift" data-value="50">
+        <div class="gift-icon icon-red">
+          <svg width="512" height="512" viewBox="0 0 512 512" fill="none" xmlns="http://www.w3.org/2000/svg">
+            <path d="M256 0V233L27 117L256 0Z" fill="#FF626D"/>
+            <path d="M256 233V279L27 395V117L256 233Z" fill="#FE4755"/>
+            <path d="M256 233V279L485 395V117L256 233Z" fill="#FF626D"/>
+            <path d="M256 279V512L27 395L256 279Z" fill="#F33140"/>
+            <path d="M256 0V233L485 117L256 0Z" fill="#FD8087"/>
+            <path d="M256 279V512L485 395L256 279Z" fill="#FE4755"/>
+          </svg>
+        </div>
+        <div class="gift-value">+50</div>
+        <input class="gift-count" type="number" min="0" step="1" value="0" inputmode="numeric" aria-label="Количество подарка" />
+        <label class="fav" title="Любимый подарок"><input type="checkbox" class="gift-fav" /><span class="heart">♥</span></label>
+      </div>
+    </div>
+  </section>
+
+  <!-- РЕЗУЛЬТАТ -->
+  <section class="card">
+    <h2>Результат</h2>
+    <div class="big-level" id="reach-level">Уровень 1</div>
+    <div class="leftover" id="reach-leftover">останется 0 баллов</div>
+    <div class="totals" id="totals">Подарками: 0 · Всего: 0</div>
+    <div class="milestone bad" id="m20"></div>
+    <div class="milestone bad" id="m30"></div>
+  </section>
+
+</main>
+
+<div class="actions">
+  <button id="reset" type="button">🔄 Очистить форму</button>
+</div>
+
+<footer>
+  <button id="bug-link" type="button">🐛 Нашел баг?</button>
+  <div class="footer-link">
+    <a href="https://dblpokojl.github.io/lust-goddess-calculator/" target="_blank">Калькулятор прокачки легендарных бойцов</a>
+  </div>
+</footer>
+
+<!-- модальное окно «нашел баг» — копия из первого калькулятора -->
+<div class="modal-overlay" id="bug-modal" hidden>
+  <div class="modal">
+    <button class="modal-close" id="bug-close" type="button">×</button>
+    <h3>🐛 Нашел баг? — Исправь!</h3>
+    Это же опенсорс
+    <p>Инструкция:</p>
+    <ol>
+      <li>Зайди на <a href="https://chat.qwen.ai/" target="_blank">https://chat.qwen.ai/</a> и авторизуйся</li>
+      <li>Загрузи в чат файл калькулятора (index.html) и опиши проблему, дальше он сам разберется</li>
+      <li>Скачай исправленную версию и используй офлайн</li>
+    </ol>
+    или
+    <p>Предложи коммит <a href="https://github.com/DblPOKOJl/lust-goddess-calculator/" target="_blank">в репу калькулятора</a></p>
+  </div>
+</div>
+
+<script>
+  // Стоимость переходов между уровнями (1>2 … 29>30), из таблицы игры
+  const DIFF = [100,200,300,400,500,600,800,1000,1200,1400,1700,2000,2300,2600,3000,
+                3500,4000,4500,5000,6000,7000,8000,9000,10000,11000,12000,13000,14000,15000];
+  // CUM[L] — суммарные баллы, чтобы дойти от 1-го уровня до L-го
+  const CUM = [0, 0];
+  for (let l = 2; l <= 30; l++) CUM[l] = CUM[l - 1] + DIFF[l - 2];
+
+  const $ = s => document.querySelector(s);
+  const fmt = n => n.toLocaleString('ru-RU');
+  const pointsInput = $('#current-points');
+  const gifts = [...document.querySelectorAll('.gift')];
+
+  function levelFor(total) {
+    let lvl = 1;
+    for (let l = 2; l <= 30; l++) {
+      if (total >= CUM[l]) lvl = l; else break;
+    }
+    return lvl;
+  }
+
+  function setMilestone(sel, target, total) {
+    const el = $(sel);
+    if (total >= CUM[target]) {
+      el.className = 'milestone ok';
+      el.textContent = '✅ Уровень ' + target + ' достигнут — останется ' + fmt(total - CUM[target]) + ' баллов';
+    } else {
+      el.className = 'milestone bad';
+      el.textContent = '❌ До уровня ' + target + ' не хватает ' + fmt(CUM[target] - total) + ' баллов';
+    }
+  }
+
+  function recalc() {
+    const cur = Math.max(0, Math.floor(+pointsInput.value || 0));
+    let giftPts = 0;
+
+    for (const g of gifts) {
+      const base = +g.dataset.value;
+      const q = Math.max(0, Math.floor(+g.querySelector('.gift-count').value || 0));
+      const fav = g.querySelector('.gift-fav').checked;
+      const per = fav ? base * 1.2 : base;           // +20% за любимый
+      giftPts += q * per;
+      const badge = g.querySelector('.gift-value');
+      badge.textContent = '+' + per;                  // +10 → +12 и т.д.
+      badge.classList.toggle('fav', fav);
+    }
+
+    const total = cur + giftPts;
+    const lvl = levelFor(total);
+
+    $('#current-level-hint').textContent = '≈ ' + levelFor(cur) + ' уровень отношений';
+    $('#reach-level').textContent = lvl >= 30 ? 'Уровень 30 · MAX' : 'Уровень ' + lvl;
+    $('#reach-leftover').textContent = 'останется ' + fmt(total - CUM[lvl]) + ' баллов';
+    $('#totals').textContent = 'Подарками: ' + fmt(giftPts) + ' · Всего: ' + fmt(total);
+    setMilestone('#m20', 20, total);
+    setMilestone('#m30', 30, total);
+  }
+
+  // живой пересчёт: любой ввод / чекбокс
+  document.querySelector('main').addEventListener('input', recalc);
+  document.querySelector('main').addEventListener('change', recalc);
+
+  $('#reset').addEventListener('click', () => {
+    pointsInput.value = 0;
+    gifts.forEach(g => {
+      g.querySelector('.gift-count').value = 0;
+      g.querySelector('.gift-fav').checked = false;
+    });
+    recalc();
+  });
+
+  // модальное окно «нашел баг»
+  const bugModal = $('#bug-modal');
+  $('#bug-link').addEventListener('click', () => { bugModal.hidden = false; });
+  $('#bug-close').addEventListener('click', () => { bugModal.hidden = true; });
+  bugModal.addEventListener('click', e => { if (e.target === bugModal) bugModal.hidden = true; });
+
+  recalc();
+</script>
+</body>
+</html>
